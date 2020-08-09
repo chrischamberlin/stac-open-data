@@ -11,4 +11,6 @@ class StacCollectionProvider(ABC):
     def item(self, itemid):
         pass
 
-
+    @abstractmethod
+    def item_list(self):
+        pass

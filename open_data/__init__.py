@@ -1,3 +1,5 @@
 from .modis import ModisBlobStorage
 
-COLLECTIONS = {'modis': ModisBlobStorage() }
+COLLECTIONS = {
+    'modis': ModisBlobStorage()
+}
