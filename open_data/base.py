@@ -1,5 +1,10 @@
 from abc import ABC, abstractmethod
 
+from typing import (
+    Tuple,
+    List,
+    Dict,
+    Optional)
 
 class StacCollectionProvider(ABC):
 
@@ -12,5 +17,5 @@ class StacCollectionProvider(ABC):
         pass
 
     @abstractmethod
-    def item_list(self):
+    def item_list(self, page_token=None) -> Tuple[List[Dict], str]:
         pass

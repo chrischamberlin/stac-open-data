@@ -1,5 +1,6 @@
 .idea/
 azure-functions-core-tools/
+/*.blob.core.windows.net/
 
 bin
 obj
