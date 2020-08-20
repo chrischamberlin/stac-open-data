@@ -4,6 +4,7 @@ from azure.storage.blob import ContainerClient
 import functools
 import logging
 import re
+from datetime import datetime
 from typing import (
     Tuple,
     List,
@@ -61,7 +62,7 @@ class ModisBlobStorage(StacCollectionProvider):
         logging.info("retrieved %s items modis" % (len(items)))
         return list(items.values()), blob_stream.continuation_token
 
-    _path_id_re = re.compile('^.+/../../\\d{7}/(BROWSE\\.)?(.+\\.A\\d{7}\\.h\\d\\dv\\d\\d\\.\\d{3})\\.\\d+\\.(.+)$')
+    _path_id_re = re.compile('^.+/../../(\\d{7})/(BROWSE\\.)?(.+\\.A\\d{7}\\.h\\d\\dv\\d\\d\\.\\d{3})\\.\\d+\\.(.+)$')
 
     def _path_group(self, path, num) -> Optional[str]:
         m = re.search(self._path_id_re, path)
@@ -71,7 +72,18 @@ class ModisBlobStorage(StacCollectionProvider):
             return None
 
     def id_for_path(self, path) -> Optional[str]:
-        return self._path_group(path, 2)
+        return self._path_group(path, 3)
+
+    def datetime_for_path(self, path) -> Optional[datetime]:
+        d = self._path_group(path, 1)
+        # daynum is a four-digit year plus a three-digit day of year (from 001 to 365)
+        if d:
+            try:
+                return datetime.strptime(d, "%Y%j")
+            except ValueError as e:
+                pass
+        logging.debug("Unable to parse datetime from path: %s" % path)
+        return None
 
     def item_for_path(self, path) -> Dict:
         return {
@@ -80,7 +92,9 @@ class ModisBlobStorage(StacCollectionProvider):
             "type": "Feature",
             "geometry": None,  # TODO get from grid_extends
             "bbox": None, # TODO compute from grid_extents
-            "properties": {},
+            "properties": {
+                "datetime": self.datetime_for_path(path).isoformat()
+            },
             "assets": {},
             "links": []
         }
@@ -89,8 +103,8 @@ class ModisBlobStorage(StacCollectionProvider):
         return self._modis_account_url + self._modis_container_name + '/' + path
 
     def asset_for_path(self, path) -> Optional[Tuple]:
-        is_browse = self._path_group(path, 1)
-        name_suffix = self._path_group(path, 3)
+        is_browse = self._path_group(path, 2)
+        name_suffix = self._path_group(path, 4)
         a = None
         roles = []
         if is_browse:
