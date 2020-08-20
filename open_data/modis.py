@@ -85,6 +85,9 @@ class ModisBlobStorage(StacCollectionProvider):
             "links": []
         }
 
+    def uri_for_path(self, path) -> str:
+        return self._modis_account_url + self._modis_container_name + '/' + path
+
     def asset_for_path(self, path) -> Optional[Tuple]:
         is_browse = self._path_group(path, 1)
         name_suffix = self._path_group(path, 3)
@@ -102,7 +105,7 @@ class ModisBlobStorage(StacCollectionProvider):
 
         if a:
             # TODO complete asset record
-            return a, {"href": path,
+            return a, {"href": self.uri_for_path(path),
                        "roles": roles}
         else:
             return None
